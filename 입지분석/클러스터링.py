@@ -16,32 +16,17 @@ from sklearn.metrics import silhouette_score
 from geopy.geocoders import Nominatim
 import time
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+import requests, json, pprint
 
 
-# In[87]:
-
-
-df = pd.read_csv(r"C:\Users\user\Downloads\data_final.csv",encoding='cp949')
-
-
-# In[52]:
+#df는 시설들 설명과 위치 정보가 포함된 dataframe
+#전처리: 필요없는 열 제거 및 좌표 -> 행정동 변환
 
 
 df = df[['x', 'y', '시설명']]
-
-
-# In[33]:
-
-
-df_encoded = pd.get_dummies(df, columns=['시설명'])
-
-
-# In[58]:
-
-
 lat = df['x']
 lng = df['y']
-
+df.drop('Unnamed: 0', axis=1, inplace=True)
 
 # In[63]:
 
@@ -52,12 +37,10 @@ xy=lat.astype(str) + ", " +lng.astype(str)
 # In[99]:
 
 
-import requests, json, pprint
-
 def get_address(lat, lng):
     url = "https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x="+lng+"&y="+lat
   
-    headers = {"Authorization": "KakaoAK 6a557b4555323744855fdb3322c2dc8a"}
+    headers = {"Authorization": "KakaoAK kakao api key"}
     api_json = requests.get(url, headers=headers)
     full_address = json.loads(api_json.text)
     first_address_name = full_address['documents'][0]['address_name'] if full_address['documents'] else None
@@ -90,17 +73,7 @@ for a in location:
 print(len(loc))
 
 
-# In[111]:
-
-
-df.drop('Unnamed: 0', axis=1, inplace=True)
-
-
-# In[112]:
-
-
-df['loc'] = loc
-
+#비정형 데이터 변형 
 
 # In[118]:
 
@@ -167,33 +140,7 @@ plt.show()
 X = df[['x', 'y', '시설명1']]
 
 # KMeans 모델 생성 및 학습
-kmeans = KMeans(n_clusters=5, random_state=0).fit(X)
-
-# 클러스터 레이블을 데이터프레임에 추가
-df['cluster'] = kmeans.labels_
-
-cluster_dfs = {}
-# 클러스터별로 요약 정보 출력
-for i in range(kmeans.n_clusters):
-    cluster_data = df[df['cluster'] == i]
-    cluster_dfs[f'cluster_{i}'] = cluster_data
-    print(f"Cluster {i} Summary:")
-    print(cluster_data[['명칭', '시설명', 'loc']])
-    print("\n")
-
-
-# In[134]:
-
-
-cluster0 = cluster_dfs['cluster_0']
-cluster1 = cluster_dfs['cluster_1']
-cluster2 = cluster_dfs['cluster_2']
-cluster3 = cluster_dfs['cluster_3']
-cluster4 = cluster_dfs['cluster_4']
-
-
-# In[128]:
-
+kmeans = KMeans(n_clusters=5, ra화
 
 plt.figure(figsize=(10, 6))
 colors = plt.cm.Blues(np.linspace(0.3, 0.9, kmeans.n_clusters))  # 동적으로 색상 생성
